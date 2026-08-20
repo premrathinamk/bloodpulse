@@ -157,13 +157,8 @@ export default function App() {
   };
 
   const handleAdminConsoleClick = () => {
-    if (!currentUser) {
-      alert('Please Sign In with an Admin ID (premrathinamk@gmail.com or sathyan2007sara@gmail.com) to access the Admin Console.');
-      setIsSignInModalOpen(true);
-      return;
-    }
-    if (!isAdmin) {
-      alert('Access restricted. Only authorized BloodPulse administrators can access this console.');
+    if (!currentUser || !isAdmin) {
+      alert('Admin only can access');
       return;
     }
     setIsAdminConsoleOpen(true);
