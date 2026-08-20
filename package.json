@@ -1,0 +1,30 @@
+{
+  "name": "bloodpulse-app",
+  "version": "1.0.0",
+  "description": "BloodPulse EMERGENCY OPS - Rapid Donor Response Network Fullstack App",
+  "main": "api/index.js",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "nodemailer": "^6.10.0"
+  },
+  "keywords": [
+    "blood-donation",
+    "emergency-ops",
+    "react",
+    "express",
+    "sqlite",
+    "turso"
+  ],
+  "author": "",
+  "license": "ISC"
+}

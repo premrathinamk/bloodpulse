@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "env": {
+    "TURSO_DATABASE_URL": "libsql://bloodpulse-prem-rathinam-tk0e5j.aws-ap-south-1.turso.io",
+    "TURSO_AUTH_TOKEN": "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODcxMjk4MTQsImlkIjoiMDFhMDE5M2MtYTEwMS03ZmE0LWFhODQtZDkzZGRmY2Y3MzBjIiwia2lkIjoiSzZjd0xSako5REptQUJxV2dNMVZReEx1dm9HdGpnd3NuZ21jLS0tY3hjUSIsInJpZCI6IjE1M2FiZTJmLTY5YmMtNGI4MS1iMmFlLWY5NWQzZTU2ZWQ4YSJ9.YRBCl6DWWuQgI6tC7GbwPxfwGz9ala6I-mov1qUkgq9_k-Gi28qOEuxD7uU5HqLP0Lhp-Gl1ioGt-2lHGtI8Dw",
+    "SMTP_EMAIL": "premrathinamk@gmail.com",
+    "SMTP_PASSWORD": "azth kavo wokr uinp"
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
