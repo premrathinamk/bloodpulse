@@ -23,7 +23,6 @@ function hashPassword(password) {
 function verifyPassword(password, storedHash) {
   if (!storedHash || !password) return false;
   if (!storedHash.includes(':')) {
-    // Backward-compatibility fallback for plain text if any
     return password === storedHash;
   }
   const [salt, originalHash] = storedHash.split(':');
@@ -61,7 +60,16 @@ exports.sendOtp = async (req, res) => {
     const otp = generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 mins
 
-    // Store OTP in database
+    // Clear old unverified OTPs for this email and insert new OTP
+    try {
+      await db.execute({
+        sql: 'DELETE FROM email_otps WHERE email = ? AND is_verified = 0',
+        args: [normalizedEmail]
+      });
+    } catch (e) {
+      // Ignore if delete fails
+    }
+
     await db.execute({
       sql: `
         INSERT INTO email_otps (email, otp_code, expires_at, is_verified)
@@ -71,19 +79,20 @@ exports.sendOtp = async (req, res) => {
     });
 
     // Dispatch email via Gmail SMTP
-    await sendOtpEmail(normalizedEmail, otp, fullName || (isAdminEmail(normalizedEmail) ? 'Admin' : 'Lifesaver'));
+    const displayName = fullName ? fullName.trim() : (isAdminEmail(normalizedEmail) ? 'Admin' : 'Lifesaver');
+    await sendOtpEmail(normalizedEmail, otp, displayName);
 
     console.log(`✉️ OTP [${otp}] sent to ${normalizedEmail}`);
 
     res.json({
       success: true,
-      message: `A 6-digit verification code has been sent to ${normalizedEmail}. Check your primary inbox!`
+      message: `A 6-digit verification code has been sent to ${normalizedEmail}. Check your inbox!`
     });
   } catch (error) {
     console.error('Error sending OTP:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to send OTP email: ' + (error.message || 'Please check email server.')
+      message: 'Failed to send OTP email: ' + (error.message || 'Please check your email address.')
     });
   }
 };

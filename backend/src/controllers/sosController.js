@@ -1,5 +1,4 @@
 const db = require('../db');
-const { sendSosBroadcastEmail } = require('../services/emailService');
 
 exports.getSosAlerts = async (req, res) => {
   try {
@@ -85,48 +84,10 @@ exports.broadcastSos = async (req, res) => {
       ]
     });
 
-    // Query all registered users and donors who have provided their email
-    let recipientEmails = [];
-    try {
-      const usersQuery = await db.execute(`SELECT DISTINCT email FROM users WHERE email IS NOT NULL AND email != ''`);
-      const donorsQuery = await db.execute(`SELECT DISTINCT email FROM donors WHERE email IS NOT NULL AND email != ''`);
-      
-      const emailSet = new Set();
-      (usersQuery.rows || []).forEach(r => {
-        if (r.email && r.email.includes('@')) emailSet.add(r.email.trim().toLowerCase());
-      });
-      (donorsQuery.rows || []).forEach(r => {
-        if (r.email && r.email.includes('@')) emailSet.add(r.email.trim().toLowerCase());
-      });
-
-      recipientEmails = Array.from(emailSet);
-    } catch (queryErr) {
-      console.warn('Could not query user emails for SOS broadcast:', queryErr);
-    }
-
-    // Trigger emergency broadcast emails to all registered members
-    if (recipientEmails.length > 0) {
-      sendSosBroadcastEmail(recipientEmails, {
-        patientName: patientName.trim(),
-        bloodGroup: cleanBloodGroup,
-        unitsNeeded: unitsNeeded ? parseInt(unitsNeeded, 10) : 1,
-        hospitalName: hospitalName.trim(),
-        city: cleanCity,
-        area: cleanArea,
-        contactPerson: contactPerson ? contactPerson.trim() : 'Emergency Coordinator',
-        contactPhone: contactPhone.trim(),
-        urgency: urgency ? urgency.trim().toUpperCase() : 'CRITICAL',
-        details: details ? details.trim() : ''
-      }).catch(err => {
-        console.error('Failed to send SOS broadcast emails:', err);
-      });
-    }
-
     res.status(201).json({
       success: true,
-      message: `Emergency SOS Broadcasted successfully! Alert emails dispatched to ${recipientEmails.length} registered user(s).`,
-      alertId: result.lastInsertRowid ? String(result.lastInsertRowid) : undefined,
-      notifiedCount: recipientEmails.length
+      message: 'Emergency SOS Broadcasted successfully!',
+      alertId: result.lastInsertRowid ? String(result.lastInsertRowid) : undefined
     });
   } catch (error) {
     console.error('Error broadcasting SOS:', error);

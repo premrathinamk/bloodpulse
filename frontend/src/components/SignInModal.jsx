@@ -50,7 +50,7 @@ export default function SignInModal({ isOpen, onClose, onLoginSuccess }) {
 
     try {
       setLoading(true);
-      const res = await sendOtp(email, fullName);
+      const res = await sendOtp(email.trim(), fullName.trim(), password);
       setSuccessMessage(res.message || 'Verification code sent to your email.');
       setStep('otp');
       setResendCooldown(60); // 60s cooldown for resending
