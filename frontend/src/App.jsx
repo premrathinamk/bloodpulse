@@ -9,8 +9,9 @@ import ContactModal from './components/ContactModal';
 import SignInModal from './components/SignInModal';
 import AdminConsoleModal from './components/AdminConsoleModal';
 import EditDonorModal from './components/EditDonorModal';
+import EditSosModal from './components/EditSosModal';
 import IntroScreen from './components/IntroScreen';
-import { fetchStats, fetchDonors, fetchSosAlerts, fetchBloodRequests, deleteMyDonorProfile } from './services/api';
+import { fetchStats, fetchDonors, fetchSosAlerts, fetchBloodRequests, deleteMyDonorProfile, deleteSosAlert } from './services/api';
 import { ShieldAlert, ShieldCheck, Play } from 'lucide-react';
 
 const ADMIN_EMAILS = [
@@ -49,6 +50,7 @@ export default function App() {
   const [isAdminConsoleOpen, setIsAdminConsoleOpen] = useState(false);
   const [selectedDonorForContact, setSelectedDonorForContact] = useState(null);
   const [selectedDonorForEdit, setSelectedDonorForEdit] = useState(null);
+  const [selectedSosForEdit, setSelectedSosForEdit] = useState(null);
 
   const isAdmin = currentUser?.email && (
     ADMIN_EMAILS.includes(currentUser.email.toLowerCase()) || 
@@ -177,8 +179,21 @@ export default function App() {
     }
   };
 
+  const handleDeleteSosClick = async (sosItem) => {
+    if (!window.confirm(`Are you sure you want to permanently delete the emergency SOS alert for "${sosItem.patientName}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteSosAlert(sosItem.id, currentUser?.email);
+      refreshAll();
+    } catch (err) {
+      alert(err.message || 'Failed to delete SOS alert');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col font-sans relative pb-20 sm:pb-16 antialiased overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-[#F9FAFB] flex flex-col font-sans relative pb-8 sm:pb-10 antialiased overflow-x-hidden w-full max-w-full">
       {/* Intro Animation Screen */}
       {showIntro && <IntroScreen onEnter={() => setShowIntro(false)} />}
 
@@ -221,6 +236,9 @@ export default function App() {
             loading={loading}
             onOpenSosModal={() => setIsSosModalOpen(true)}
             onRefresh={loadSosAlerts}
+            currentUser={currentUser}
+            onEditSos={(alert) => setSelectedSosForEdit(alert)}
+            onDeleteSos={handleDeleteSosClick}
           />
         )}
 
@@ -229,6 +247,7 @@ export default function App() {
             requests={requests}
             loading={loading}
             onRefresh={loadRequests}
+            currentUser={currentUser}
           />
         )}
 
@@ -261,27 +280,12 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Floating Admin Console Bottom Button */}
-      <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-40">
-        <button
-          onClick={handleAdminConsoleClick}
-          className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-extrabold text-[11px] sm:text-xs shadow-xl transition-all duration-200 active:scale-95 border ${
-            isAdmin
-              ? 'bg-[#0B1120] text-rose-400 hover:text-white hover:bg-rose-600 border-rose-500/50 shadow-rose-950/40 animate-pulse'
-              : 'bg-[#0B1120] text-slate-400 hover:text-white border-slate-700 shadow-slate-950/40'
-          }`}
-          title="Admin Ops Console"
-        >
-          <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500" />
-          <span>{isAdmin ? '🛡️ Admin Console (Active)' : '🛡️ Admin Console'}</span>
-        </button>
-      </div>
-
       {/* Interactive Modals */}
       <SosModal
         isOpen={isSosModalOpen}
         onClose={() => setIsSosModalOpen(false)}
         onSuccess={handleSosSuccess}
+        currentUser={currentUser}
       />
 
       <ContactModal
@@ -303,6 +307,15 @@ export default function App() {
         currentUser={currentUser}
         onDonorUpdated={refreshAll}
         onDonorDeleted={refreshAll}
+      />
+
+      <EditSosModal
+        alert={selectedSosForEdit}
+        isOpen={!!selectedSosForEdit}
+        onClose={() => setSelectedSosForEdit(null)}
+        currentUser={currentUser}
+        onAlertUpdated={refreshAll}
+        onAlertDeleted={refreshAll}
       />
 
       <AdminConsoleModal

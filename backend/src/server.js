@@ -38,10 +38,14 @@ app.post('/api/donors/:donorId/contact', donorController.requestContact);
 // 4. Emergency SOS Broadcasts
 app.get('/api/sos', sosController.getSosAlerts);
 app.post('/api/sos', sosController.broadcastSos);
+app.put('/api/sos/:id', sosController.updateSos);
+app.delete('/api/sos/:id', sosController.deleteSos);
 
 // 5. Blood Requests
 app.get('/api/requests', requestController.getRequests);
 app.post('/api/requests', requestController.createRequest);
+app.put('/api/requests/:id', requestController.updateRequest);
+app.delete('/api/requests/:id', requestController.deleteRequest);
 
 // 6. Admin Console Endpoints (Protected by Admin Email Verification)
 app.get('/api/admin/data', adminController.getAdminData);

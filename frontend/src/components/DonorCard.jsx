@@ -3,10 +3,9 @@ import { MapPin, Phone, ShieldCheck, Edit, Trash2, UserCheck } from 'lucide-reac
 
 export default function DonorCard({ donor, onRequestContact, currentUser, onEditDonor, onDeleteDonor }) {
   const isEligible = donor.eligibilityStatus === 'eligible';
-  const isOwner = currentUser?.email && donor.email && (
-    currentUser.email.trim().toLowerCase() === donor.email.trim().toLowerCase() ||
-    currentUser.role === 'ADMIN'
-  );
+  const cleanUserEmail = currentUser?.email ? currentUser.email.trim().toLowerCase() : '';
+  const cleanDonorEmail = donor?.email ? donor.email.trim().toLowerCase() : '';
+  const isOwner = Boolean(cleanUserEmail && cleanDonorEmail && cleanUserEmail === cleanDonorEmail);
 
   return (
     <div className={`bg-white border rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group ${

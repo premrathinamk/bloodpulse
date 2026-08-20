@@ -98,6 +98,28 @@ export async function broadcastEmergencySos(sosData) {
   return data;
 }
 
+export async function updateSosAlert(id, sosData, userEmail) {
+  const res = await fetch(`${API_BASE}/sos/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...sosData, userEmail })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to update SOS alert');
+  return data;
+}
+
+export async function deleteSosAlert(id, userEmail) {
+  const res = await fetch(`${API_BASE}/sos/${id}?userEmail=${encodeURIComponent(userEmail || '')}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userEmail })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to delete SOS alert');
+  return data;
+}
+
 export async function fetchBloodRequests() {
   const res = await fetch(`${API_BASE}/requests`);
   if (!res.ok) throw new Error('Failed to fetch requests');
@@ -112,6 +134,28 @@ export async function createBloodRequest(requestData) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Failed to create blood request');
+  return data;
+}
+
+export async function updateBloodRequest(id, requestData, userEmail) {
+  const res = await fetch(`${API_BASE}/requests/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...requestData, userEmail })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to update blood request');
+  return data;
+}
+
+export async function deleteBloodRequest(id, userEmail) {
+  const res = await fetch(`${API_BASE}/requests/${id}?userEmail=${encodeURIComponent(userEmail || '')}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userEmail })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to delete blood request');
   return data;
 }
 

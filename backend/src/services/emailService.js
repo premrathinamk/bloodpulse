@@ -20,98 +20,75 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Send BloodPulse OTP Verification Email
+ * Send BloodPulse OTP Verification Email (Optimized for Primary Inbox Delivery)
  * @param {string} toEmail - Recipient email address
  * @param {string} otp - 6 digit verification code
- * @param {string} recipientName - Optional name of the user
+ * @param {string} recipientName - Name of the user
  */
-async function sendOtpEmail(toEmail, otp, recipientName = 'Lifesaver') {
+async function sendOtpEmail(toEmail, otp, recipientName = 'User') {
   const cleanEmail = toEmail.trim().toLowerCase();
   const cleanName = recipientName.trim();
 
   const mailOptions = {
-    from: `"BloodPulse EMERGENCY OPS" <${smtpEmail}>`,
+    from: `"BloodPulse" <${smtpEmail}>`,
     to: cleanEmail,
-    subject: `🩸 ${otp} is your BloodPulse Verification Code`,
-    headers: {
-      'X-Priority': '1',
-      'X-MSMail-Priority': 'High',
-      'Importance': 'high'
-    },
-    text: `Hello ${cleanName},\n\nYour BloodPulse Emergency Donor Network verification code is: ${otp}\n\nThis code will expire in 10 minutes. Please do not share this OTP with anyone.\n\nStay Safe,\nBloodPulse Emergency Ops Team`,
+    replyTo: smtpEmail,
+    subject: `Your BloodPulse verification code is ${otp}`,
+    text: `Hi ${cleanName},\n\nYour BloodPulse verification code is: ${otp}\n\nThis code will expire in 10 minutes. If you did not request this, please ignore this email.\n\nThanks,\nThe BloodPulse Team`,
     html: `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>BloodPulse Verification Code</title>
       </head>
-      <body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f6f9; padding: 30px 15px;">
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 30px 15px;">
           <tr>
             <td align="center">
-              <table width="100%" max-width="520" style="max-width: 520px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
-                <!-- Header -->
+              <table width="100%" style="max-width: 480px; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+                
+                <!-- Brand Header -->
                 <tr>
-                  <td style="background-color: #0B1120; padding: 28px 30px; text-align: left;">
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td>
-                          <div style="display: inline-block; vertical-align: middle;">
-                            <span style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">BloodPulse</span>
-                            <span style="background-color: #DC2626; color: #ffffff; font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 4px; text-transform: uppercase; margin-left: 6px; letter-spacing: 0.5px; vertical-align: middle;">EMERGENCY OPS</span>
-                          </div>
-                          <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; font-weight: 500;">
-                            Rapid Donor Response Network
-                          </div>
-                        </td>
-                      </tr>
-                    </table>
+                  <td style="background-color: #0f172a; padding: 24px; text-align: left;">
+                    <span style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">BloodPulse</span>
+                    <span style="font-size: 12px; color: #94a3b8; margin-left: 8px; font-weight: 500;">Emergency Network</span>
                   </td>
                 </tr>
 
-                <!-- Content Body -->
+                <!-- Main Content -->
                 <tr>
-                  <td style="padding: 32px 30px 24px 30px; text-align: left;">
-                    <h2 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #0f172a;">
-                      Verify Your Email Address
+                  <td style="padding: 30px 24px; text-align: left;">
+                    <h2 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700; color: #0f172a;">
+                      Verification Code
                     </h2>
-                    <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #475569;">
-                      Hello <strong>${cleanName}</strong>,<br>
-                      Thank you for joining the BloodPulse Rapid Donor Response Network. Please use the one-time verification code below to verify your account:
+                    <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.5; color: #475569;">
+                      Hi ${cleanName},<br>
+                      Please use the verification code below to complete your sign in on BloodPulse:
                     </p>
 
-                    <!-- OTP Code Box -->
-                    <div style="background-color: #fff1f2; border: 2px dashed #f43f5e; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
-                      <div style="font-size: 11px; font-weight: 700; color: #e11d48; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">
-                        ONE-TIME VERIFICATION CODE
-                      </div>
-                      <div style="font-size: 36px; font-weight: 800; color: #be123c; letter-spacing: 8px; font-family: monospace;">
+                    <!-- Code Box -->
+                    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 18px; text-align: center; margin: 20px 0;">
+                      <div style="font-size: 32px; font-weight: 800; color: #dc2626; letter-spacing: 6px; font-family: monospace;">
                         ${otp}
                       </div>
-                      <div style="font-size: 12px; color: #9f1239; margin-top: 6px; font-weight: 500;">
-                        ⏱️ Valid for 10 minutes
+                      <div style="font-size: 12px; color: #991b1b; margin-top: 6px;">
+                        Valid for 10 minutes
                       </div>
                     </div>
 
-                    <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.5; color: #64748b;">
-                      If you did not request this verification code, you can safely ignore this email. Someone may have entered your email by mistake.
+                    <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #64748b;">
+                      If you did not request this verification code, you can safely ignore this email.
                     </p>
-
-                    <div style="border-top: 1px solid #f1f5f9; padding-top: 18px; margin-top: 24px;">
-                      <p style="margin: 0; font-size: 12px; color: #94a3b8;">
-                        🔒 <strong>Privacy-First Guarantee</strong>: Your contact details are securely encrypted and protected against spam.
-                      </p>
-                    </div>
                   </td>
                 </tr>
 
                 <!-- Footer -->
                 <tr>
-                  <td style="background-color: #f8fafc; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+                  <td style="background-color: #f8fafc; padding: 16px 24px; text-align: center; border-top: 1px solid #e2e8f0;">
                     <p style="margin: 0; font-size: 11px; color: #94a3b8;">
-                      © 2026 BloodPulse Emergency Donor Network. All rights reserved.
+                      © 2026 BloodPulse. All rights reserved.
                     </p>
                   </td>
                 </tr>

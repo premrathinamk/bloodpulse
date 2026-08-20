@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Plus, FileText, Calendar, Building2, MapPin, Phone, AlertCircle, CheckCircle, Building, Compass } from 'lucide-react';
-import { createBloodRequest } from '../services/api';
+import { Plus, FileText, Calendar, Building2, MapPin, Phone, AlertCircle, CheckCircle, Building, Compass, Trash2, UserCheck } from 'lucide-react';
+import { createBloodRequest, deleteBloodRequest } from '../services/api';
 import { TAMIL_NADU_DISTRICTS, getTaluksForDistrict } from '../data/tamilNaduLocations';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const ADMIN_EMAILS = [
+  'premrathinamk@gmail.com',
+  'sathyan2007sara@gmail.com'
+];
 
-export default function RequestsView({ requests, loading, onRefresh }) {
+export default function RequestsView({ requests, loading, onRefresh, currentUser }) {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     patientName: '',
@@ -20,6 +24,9 @@ export default function RequestsView({ requests, loading, onRefresh }) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+
+  const cleanUserEmail = currentUser?.email ? currentUser.email.toLowerCase().trim() : '';
+  const isUserAdmin = Boolean(cleanUserEmail && ADMIN_EMAILS.includes(cleanUserEmail));
 
   // Available taluks for currently selected city
   const availableTaluks = getTaluksForDistrict(formData.city);
@@ -43,7 +50,11 @@ export default function RequestsView({ requests, loading, onRefresh }) {
 
     try {
       setSubmitting(true);
-      await createBloodRequest(formData);
+      await createBloodRequest({
+        ...formData,
+        creatorEmail: cleanUserEmail,
+        userEmail: cleanUserEmail
+      });
       setMessage('Blood request created successfully!');
       setTimeout(() => {
         setMessage('');
@@ -54,6 +65,19 @@ export default function RequestsView({ requests, loading, onRefresh }) {
       alert(err.message || 'Failed to submit request');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteRequest = async (reqId, patientName) => {
+    if (!window.confirm(`Are you sure you want to delete your blood request for "${patientName}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteBloodRequest(reqId, cleanUserEmail);
+      onRefresh?.();
+    } catch (err) {
+      alert(err.message || 'Failed to delete blood request');
     }
   };
 
@@ -71,7 +95,7 @@ export default function RequestsView({ requests, loading, onRefresh }) {
 
         <button
           onClick={() => setShowModal(true)}
-          className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-95 whitespace-nowrap"
+          className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-95 whitespace-nowrap cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Post Blood Request</span>
@@ -90,55 +114,82 @@ export default function RequestsView({ requests, loading, onRefresh }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {requests.map((req) => (
-            <div
-              key={req.id}
-              className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="font-extrabold text-xs px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600">
-                    {req.bloodGroup} • {req.unitsNeeded} {req.unitsNeeded > 1 ? 'Units' : 'Unit'}
-                  </span>
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                    {req.status}
-                  </span>
-                </div>
+          {requests.map((req) => {
+            const cleanCreatorEmail = req?.creatorEmail ? req.creatorEmail.toLowerCase().trim() : '';
+            const isOwner = Boolean(cleanUserEmail && cleanCreatorEmail && cleanUserEmail === cleanCreatorEmail);
+            const canManage = isOwner || isUserAdmin;
 
-                <h3 className="text-base font-bold text-slate-900">
-                  Patient: {req.patientName}
-                </h3>
+            return (
+              <div
+                key={req.id}
+                className={`bg-white border rounded-2xl p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between ${
+                  isOwner ? 'border-rose-300 ring-2 ring-rose-100/70' : 'border-slate-200/90'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-xs px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600">
+                        {req.bloodGroup} • {req.unitsNeeded} {req.unitsNeeded > 1 ? 'Units' : 'Unit'}
+                      </span>
+                      {isOwner && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                          <UserCheck className="w-3 h-3" />
+                          <span>Your Request</span>
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                      {req.status}
+                    </span>
+                  </div>
 
-                <div className="text-xs text-slate-500 space-y-1 mt-2">
-                  <p className="flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{req.hospitalName} ({req.area ? `${req.area}, ${req.city}` : req.city})</span>
-                  </p>
-                  {req.requiredByDate && (
+                  <h3 className="text-base font-bold text-slate-900">
+                    Patient: {req.patientName}
+                  </h3>
+
+                  <div className="text-xs text-slate-500 space-y-1 mt-2">
                     <p className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Required by: {req.requiredByDate}</span>
+                      <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{req.hospitalName} ({req.area ? `${req.area}, ${req.city}` : req.city})</span>
                     </p>
-                  )}
-                  {req.notes && (
-                    <p className="italic text-slate-600 bg-slate-50 p-2 rounded-lg mt-1.5">
-                      "{req.notes}"
-                    </p>
+                    {req.requiredByDate && (
+                      <p className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Required by: {req.requiredByDate}</span>
+                      </p>
+                    )}
+                    {req.notes && (
+                      <p className="italic text-slate-600 bg-slate-50 p-2 rounded-lg mt-1.5">
+                        "{req.notes}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <a
+                    href={`tel:${req.contactPhone}`}
+                    className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1.5"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>Call Attender ({req.contactPhone})</span>
+                  </a>
+
+                  {canManage && (
+                    <button
+                      onClick={() => handleDeleteRequest(req.id, req.patientName)}
+                      className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg text-xs flex items-center gap-1 transition active:scale-95 cursor-pointer"
+                      title="Delete your blood request"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete</span>
+                    </button>
                   )}
                 </div>
               </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                <a
-                  href={`tel:${req.contactPhone}`}
-                  className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1.5"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Call Attender ({req.contactPhone})</span>
-                </a>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
