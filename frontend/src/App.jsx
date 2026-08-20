@@ -183,7 +183,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col font-sans relative pb-20 sm:pb-16 antialiased">
+    <div className="min-h-screen bg-[#F9FAFB] flex flex-col font-sans relative pb-20 sm:pb-16 antialiased overflow-x-hidden w-full max-w-full">
       {/* Intro Animation Screen */}
       {showIntro && <IntroScreen onEnter={() => setShowIntro(false)} />}
 
@@ -200,7 +200,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-8 box-border">
         {activeTab === 'find' && (
           <FindDonorView
             donors={donors}
@@ -254,21 +254,14 @@ export default function App() {
           </p>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowIntro(true)}
-              className="inline-flex items-center gap-1 text-slate-500 hover:text-rose-600 font-bold transition cursor-pointer"
-              title="Replay intro animation"
-            >
-              <Play className="w-3 h-3 text-rose-500 fill-rose-500" />
-              <span>Replay Intro</span>
-            </button>
-            <span className="text-slate-300">|</span>
-            <button
               onClick={handleAdminConsoleClick}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer"
             >
               <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
               <span>Admin Console</span>
             </button>
+            <span className="text-slate-300">|</span>
+            <p className="text-[11px] sm:text-xs">Privacy-First Architecture</p>
           </div>
         </div>
       </footer>
